@@ -1,24 +1,31 @@
 const axios = require('axios');
 
 const TELEGRAM_BOT_TOKEN = '8250221796:AAHdKid6RAoIeEnjHhrYdHNGkmc38wfs5d4';
-const FIREBASE_DB_URL = 'https://saprahik-kaj-default-rtdb.firebaseio.com';
 
-let lastUpdateId = 0;
-
-const WELCOME_MESSAGE = `🎉 বটটি চালু করার জন্য ধন্যবাদ! 🎉
+async function checkAndSend() {
+    try {
+        console.log('🚀 বট চেক করছি...', new Date().toLocaleString('bn-BD'));
+        
+        // টেলিগ্রাম থেকে আপডেট নেওয়া
+        const response = await axios.get(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/getUpdates`);
+        
+        if (response.data.ok && response.data.result) {
+            for (const update of response.data.result) {
+                if (update.message && update.message.text === '/start') {
+                    const chatId = update.message.chat.id;
+                    const username = update.message.chat.username || 'ইউজার';
+                    
+                    console.log(`📨 ${username} থেকে /start পেয়েছি`);
+                    
+                    // ওয়েলকাম মেসেজ
+                    const welcomeMsg = `🎉 বটটি চালু করার জন্য ধন্যবাদ! ${username} 🎉
 
 ✨ <b>EBH TEAM - Habib</b> ✨
 
 📌 <b>কীভাবে কাজ করবে:</b>
-━━━━━━━━━━━━━━━━━━━━
-1️⃣ আমাদের ওয়েবসাইটে গিয়ে একাউন্ট সাবমিট করুন
-2️⃣ সাবমিট করার পর এখানেই কনফার্মেশন পাবেন
+1️⃣ ওয়েবসাইটে গিয়ে একাউন্ট সাবমিট করুন
+2️⃣ সাবমিট করার পর কনফার্মেশন পাবেন
 3️⃣ অ্যাডমিন অ্যাপ্রুভ করলে পেমেন্ট পাবেন
-
-💡 <b>গুরুত্বপূর্ণ:</b>
-• ডুপ্লিকেট একাউন্ট অটো বাদ যাবে
-• সঠিক ইউজারনেম দিন
-• পেমেন্ট নিয়ম মেনে চলুন
 
 📱 <b>সাপোর্ট:</b>
 👤 অ্যাডমিন: @EBH_5
@@ -27,79 +34,24 @@ const WELCOME_MESSAGE = `🎉 বটটি চালু করার জন্�
 ━━━━━━━━━━━━━━━━━━━━
 আমাদের সাথে থাকার জন্য ধন্যবাদ! ❤️
 <b>EBH TEAM - Habib</b>`;
-
-async function sendTelegramMessage(chatId, message) {
-    try {
-        const response = await axios.post(
-            `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`,
-            { chat_id: chatId, text: message, parse_mode: 'HTML' }
-        );
-        return response.data.ok;
-    } catch (error) {
-        console.error('মেসেজ পাঠাতে সমস্যা:', error.message);
-        return false;
-    }
-}
-
-async function registerTelegramUser(chatId, username, firstName) {
-    const cleanUsername = (username || firstName || 'user_' + chatId).toString().toLowerCase().replace(/[^a-z0-9_]/g, '');
-    try {
-        const checkRes = await axios.get(`${FIREBASE_DB_URL}/telegramUsers/${cleanUsername}.json`);
-        if (!checkRes.data) {
-            await axios.put(`${FIREBASE_DB_URL}/telegramUsers/${cleanUsername}.json`, {
-                chatId: chatId, username: cleanUsername, fullName: firstName || '',
-                registeredAt: Date.now(), lastActive: Date.now()
-            });
-            console.log(`✅ নতুন নিবন্ধন: @${cleanUsername}`);
-            return true;
-        } else if (checkRes.data.chatId !== chatId) {
-            await axios.patch(`${FIREBASE_DB_URL}/telegramUsers/${cleanUsername}.json`, { chatId: chatId, lastActive: Date.now() });
-            console.log(`🔄 আপডেট: @${cleanUsername}`);
-            return false;
-        } else {
-            await axios.patch(`${FIREBASE_DB_URL}/telegramUsers/${cleanUsername}.json`, { lastActive: Date.now() });
-            return false;
-        }
-    } catch (error) {
-        console.error('রেজিস্টার করতে সমস্যা:', error.message);
-        return false;
-    }
-}
-
-async function checkTelegramUpdates() {
-    try {
-        let url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/getUpdates`;
-        if (lastUpdateId > 0) url += `?offset=${lastUpdateId + 1}`;
-        const response = await axios.get(url);
-        const data = response.data;
-        if (data.ok && data.result && data.result.length > 0) {
-            for (const update of data.result) {
-                if (update.update_id > lastUpdateId) lastUpdateId = update.update_id;
-                if (update.message && update.message.text === '/start') {
-                    const chatId = update.message.chat.id;
-                    const username = update.message.chat.username;
-                    const firstName = update.message.chat.first_name;
-                    console.log(`📨 /start পেয়েছি from ${chatId}`);
-                    await registerTelegramUser(chatId, username, firstName);
-                    const sent = await sendTelegramMessage(chatId, WELCOME_MESSAGE);
-                    if (sent) console.log(`✅ ওয়েলকাম মেসেজ পাঠানো হয়েছে ${chatId} এ`);
-                    else console.log(`❌ মেসেজ পাঠাতে ব্যর্থ`);
+                    
+                    // মেসেজ পাঠানো
+                    await axios.post(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+                        chat_id: chatId,
+                        text: welcomeMsg,
+                        parse_mode: 'HTML'
+                    });
+                    
+                    console.log(`✅ ওয়েলকাম মেসেজ পাঠানো হয়েছে ${chatId} এ`);
                 }
             }
         }
-    } catch (error) {
-        console.error('আপডেট চেক করতে সমস্যা:', error.message);
-    }
-}
-
-async function main() {
-    try {
-        console.log('🚀 বট চালু হচ্ছে...', new Date().toLocaleString('bn-BD'));
-        await checkTelegramUpdates();
+        
         console.log('✅ চেক সম্পন্ন');
+        
     } catch (error) {
-        console.error('মেইন ফাংশনে সমস্যা:', error.message);
+        console.error('সমস্যা:', error.message);
     }
 }
 
-main();
+checkAndSend();

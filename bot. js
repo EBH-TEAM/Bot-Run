@@ -2,24 +2,54 @@ const axios = require('axios');
 
 const BOT_TOKEN = '8250221796:AAHdKid6RAoIeEnjHhrYdHNGkmc38wfs5d4';
 
-async function testBot() {
-    console.log('🚀 বট শুরু হচ্ছে...');
+async function run() {
+    console.log('🤖 বট চালু হচ্ছে...');
     
     try {
-        // টেস্ট: বটের তথ্য পাওয়া যাচ্ছে কিনা
-        const info = await axios.get(`https://api.telegram.org/bot${BOT_TOKEN}/getMe`);
-        console.log('✅ বটের নাম:', info.data.result.first_name);
-        console.log('✅ বটের ইউজারনাম:', info.data.result.username);
+        // বট চেক করা
+        const me = await axios.get(`https://api.telegram.org/bot${BOT_TOKEN}/getMe`);
+        console.log('✅ বট অনলাইন:', me.data.result.username);
         
-        // টেস্ট: নিজেকে একটি টেস্ট মেসেজ পাঠান (আপনার chatId দিন)
-        // আপনার chatId পেতে: https://api.telegram.org/bot8250221796:AAHdKid6RAoIeEnjHhrYdHNGkmc38wfs5d4/getUpdates
-        // এখানে আপনার chatId বসিয়ে দিলে টেস্ট মেসেজ পাবেন
+        // নতুন মেসেজ চেক করা
+        const updates = await axios.get(`https://api.telegram.org/bot${BOT_TOKEN}/getUpdates`);
         
-        console.log('✅ সবকিছু ঠিক আছে!');
+        if (updates.data.result && updates.data.result.length > 0) {
+            for (const update of updates.data.result) {
+                if (update.message && update.message.text === '/start') {
+                    const chatId = update.message.chat.id;
+                    
+                    const welcomeMsg = `🎉 বট চালু করার জন্য ধন্যবাদ! 🎉
+
+✨ EBH TEAM - Habib ✨
+
+📌 কিভাবে কাজ করবে:
+1️⃣ ওয়েবসাইটে একাউন্ট সাবমিট করুন
+2️⃣ সাবমিট করার পর কনফার্মেশন পাবেন
+3️⃣ অ্যাডমিন অ্যাপ্রুভ করলে পেমেন্ট পাবেন
+
+📱 সাপোর্ট:
+👤 @EBH_5
+📢 t.me/earningbyhabib
+
+━━━━━━━━━━━━━━━━━━━━
+EBH TEAM - Habib ❤️`;
+                    
+                    await axios.post(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+                        chat_id: chatId,
+                        text: welcomeMsg,
+                        parse_mode: 'HTML'
+                    });
+                    
+                    console.log('✅ ওয়েলকাম মেসেজ পাঠানো হয়েছে');
+                }
+            }
+        }
+        
+        console.log('✅ কাজ শেষ');
         
     } catch (error) {
-        console.error('❌ সমস্যা:', error.message);
+        console.log('❌ সমস্যা:', error.message);
     }
 }
 
-testBot();
+run();

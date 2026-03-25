@@ -1,83 +1,12 @@
-const https = require('https');
+name: Bot Run
 
-const BOT_TOKEN = '8250221796:AAHdKid6RAoIeEnjHhrYdHNGkmc38wfs5d4';
+on:
+  workflow_dispatch:
 
-function fetchUrl(url, options = {}) {
-    return new Promise((resolve, reject) => {
-        const req = https.request(url, options, (res) => {
-            let data = '';
-            res.on('data', chunk => data += chunk);
-            res.on('end', () => {
-                try {
-                    resolve(JSON.parse(data));
-                } catch(e) {
-                    resolve(data);
-                }
-            });
-        });
-        req.on('error', reject);
-        if (options.body) {
-            req.write(JSON.stringify(options.body));
-        }
-        req.end();
-    });
-}
-
-async function run() {
-    console.log('🤖 বট চালু হচ্ছে...');
-    
-    try {
-        // বট চেক করা
-        const me = await fetchUrl(`https://api.telegram.org/bot${BOT_TOKEN}/getMe`);
-        console.log('✅ বট অনলাইন:', me.result.username);
-        
-        // নতুন মেসেজ চেক করা
-        const updates = await fetchUrl(`https://api.telegram.org/bot${BOT_TOKEN}/getUpdates`);
-        
-        if (updates.result && updates.result.length > 0) {
-            for (const update of updates.result) {
-                if (update.message && update.message.text === '/start') {
-                    const chatId = update.message.chat.id;
-                    const username = update.message.chat.username || 'ভাইয়া';
-                    
-                    const welcomeMsg = `🎉 বট চালু করার জন্য ধন্যবাদ @${username}! 🎉
-
-✨ EBH TEAM - Habib ✨
-
-📌 কিভাবে কাজ করবে:
-1️⃣ ওয়েবসাইটে একাউন্ট সাবমিট করুন
-2️⃣ সাবমিট করার পর কনফার্মেশন পাবেন
-3️⃣ অ্যাডমিন অ্যাপ্রুভ করলে পেমেন্ট পাবেন
-
-📱 সাপোর্ট:
-👤 অ্যাডমিন: @EBH_5
-📢 চ্যানেল: t.me/earningbyhabib
-
-━━━━━━━━━━━━━━━━━━━━
-EBH TEAM - Habib ❤️`;
-                    
-                    await fetchUrl(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: {
-                            chat_id: chatId,
-                            text: welcomeMsg,
-                            parse_mode: 'HTML'
-                        }
-                    });
-                    
-                    console.log(`✅ ওয়েলকাম মেসেজ পাঠানো হয়েছে ${chatId} এ`);
-                }
-            }
-        } else {
-            console.log('📭 কোন নতুন মেসেজ নেই');
-        }
-        
-        console.log('✅ কাজ শেষ');
-        
-    } catch (error) {
-        console.log('❌ সমস্যা:', error.message);
-    }
-}
-
-run();
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run Bot
+        run: node bot.js

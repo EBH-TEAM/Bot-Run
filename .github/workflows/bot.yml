@@ -1,20 +1,26 @@
-jsEBH Telegram Bot
+name: EBH Telegram Bot
 
 on:
   schedule:
-    - cron: '*/3 * * * *'
+    - cron: '*/5 * * * *'
   workflow_dispatch:
 
 jobs:
   run-bot:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
-      - name: Install
-        run: npm install
-      - name: Run Bot
-        run: node bot.bot
+          node-version: '18'
+      
+      - name: Install dependencies
+        run: |
+          npm init -y
+          npm install axios
+        
+      - name: Run bot
+        run: node bot.jsjs

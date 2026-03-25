@@ -1,57 +1,25 @@
 const axios = require('axios');
 
-const TELEGRAM_BOT_TOKEN = '8250221796:AAHdKid6RAoIeEnjHhrYdHNGkmc38wfs5d4';
+const BOT_TOKEN = '8250221796:AAHdKid6RAoIeEnjHhrYdHNGkmc38wfs5d4';
 
-async function checkAndSend() {
+async function testBot() {
+    console.log('🚀 বট শুরু হচ্ছে...');
+    
     try {
-        console.log('🚀 বট চেক করছি...', new Date().toLocaleString('bn-BD'));
+        // টেস্ট: বটের তথ্য পাওয়া যাচ্ছে কিনা
+        const info = await axios.get(`https://api.telegram.org/bot${BOT_TOKEN}/getMe`);
+        console.log('✅ বটের নাম:', info.data.result.first_name);
+        console.log('✅ বটের ইউজারনাম:', info.data.result.username);
         
-        // টেলিগ্রাম থেকে আপডেট নেওয়া
-        const response = await axios.get(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/getUpdates`);
+        // টেস্ট: নিজেকে একটি টেস্ট মেসেজ পাঠান (আপনার chatId দিন)
+        // আপনার chatId পেতে: https://api.telegram.org/bot8250221796:AAHdKid6RAoIeEnjHhrYdHNGkmc38wfs5d4/getUpdates
+        // এখানে আপনার chatId বসিয়ে দিলে টেস্ট মেসেজ পাবেন
         
-        if (response.data.ok && response.data.result) {
-            for (const update of response.data.result) {
-                if (update.message && update.message.text === '/start') {
-                    const chatId = update.message.chat.id;
-                    const username = update.message.chat.username || 'ইউজার';
-                    
-                    console.log(`📨 ${username} থেকে /start পেয়েছি`);
-                    
-                    // ওয়েলকাম মেসেজ
-                    const welcomeMsg = `🎉 বটটি চালু করার জন্য ধন্যবাদ! ${username} 🎉
-
-✨ <b>EBH TEAM - Habib</b> ✨
-
-📌 <b>কীভাবে কাজ করবে:</b>
-1️⃣ ওয়েবসাইটে গিয়ে একাউন্ট সাবমিট করুন
-2️⃣ সাবমিট করার পর কনফার্মেশন পাবেন
-3️⃣ অ্যাডমিন অ্যাপ্রুভ করলে পেমেন্ট পাবেন
-
-📱 <b>সাপোর্ট:</b>
-👤 অ্যাডমিন: @EBH_5
-📢 চ্যানেল: t.me/earningbyhabib
-
-━━━━━━━━━━━━━━━━━━━━
-আমাদের সাথে থাকার জন্য ধন্যবাদ! ❤️
-<b>EBH TEAM - Habib</b>`;
-                    
-                    // মেসেজ পাঠানো
-                    await axios.post(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
-                        chat_id: chatId,
-                        text: welcomeMsg,
-                        parse_mode: 'HTML'
-                    });
-                    
-                    console.log(`✅ ওয়েলকাম মেসেজ পাঠানো হয়েছে ${chatId} এ`);
-                }
-            }
-        }
-        
-        console.log('✅ চেক সম্পন্ন');
+        console.log('✅ সবকিছু ঠিক আছে!');
         
     } catch (error) {
-        console.error('সমস্যা:', error.message);
+        console.error('❌ সমস্যা:', error.message);
     }
 }
 
-checkAndSend();
+testBot();

@@ -55,10 +55,11 @@ async function registerTelegramUser(chatId, username, firstName) {
         } else if (checkRes.data.chatId !== chatId) {
             await axios.patch(`${FIREBASE_DB_URL}/telegramUsers/${cleanUsername}.json`, { chatId: chatId, lastActive: Date.now() });
             console.log(`🔄 আপডেট: @${cleanUsername}`);
+            return false;
         } else {
             await axios.patch(`${FIREBASE_DB_URL}/telegramUsers/${cleanUsername}.json`, { lastActive: Date.now() });
+            return false;
         }
-        return false;
     } catch (error) {
         console.error('রেজিস্টার করতে সমস্যা:', error.message);
         return false;
@@ -92,9 +93,13 @@ async function checkTelegramUpdates() {
 }
 
 async function main() {
-    console.log('🚀 বট চালু হচ্ছে...', new Date().toLocaleString('bn-BD'));
-    await checkTelegramUpdates();
-    console.log('✅ চেক সম্পন্ন');
+    try {
+        console.log('🚀 বট চালু হচ্ছে...', new Date().toLocaleString('bn-BD'));
+        await checkTelegramUpdates();
+        console.log('✅ চেক সম্পন্ন');
+    } catch (error) {
+        console.error('মেইন ফাংশনে সমস্যা:', error.message);
+    }
 }
 
 main();
